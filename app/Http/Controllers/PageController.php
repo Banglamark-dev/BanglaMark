@@ -11,59 +11,59 @@ use App\Services\FileUpload;
 
 class PageController extends Controller
 {
-    
+
 
     public function index(Request $r, Page $rows){
-        
+
         $rows = $rows->newQuery();
-      
+
         $pg = 12;
         $p = ($r->input('page',1)-1 ) * $pg;
-        
+
         $rows = $rows->orderBy('id')->paginate($pg);
-        
+
     	return view('admin.page.index',compact('rows','p'));
 
     }
-    
+
 
     public function store(Request $r){
-        
+
         $this->validate($r,[
-   
+
             'title'=>'required'
 
             ]);
-        
+
         $row = new Page;
         $row->title = $r->title;
         $row->slug = Str::slug($r->title,'-');
-        
+
         if($row->save()){
-            
+
             return redirect()->route('pages.edit',$row->id);
         }
 
     }
-    
+
     public function edit($id){
-        
+
         $row = Page::findOrFail($id);
-        
+
         return view('admin.page.edit',compact('row'));
     }
-    
+
     public function update(Request $r, $id){
-        
+
         $row = Page::findOrFail($id);
-        
+
         $this->validate($r,[
-   
+
             'title'=>'required',
             'slug' =>'required|unique:pages,slug,'.$row->id
 
             ]);
-        
+
         $row->title = $r->title;
         $row->slug = $r->slug;
         $row->body = $r->body;
@@ -72,26 +72,81 @@ class PageController extends Controller
         $row->meta_kw = $r->meta_kw;
         $row->sort = $r->sort;
         $row->status = $r->status;
-        
+        $fileup = new FileUpload;
+
+
+        if($r->img1){
+            $fileup1 = new FileUpload;
+            $img1 = $fileup1->upload($r->img1);
+            $fileup1->del_file($row->img1);
+            $row->img1 = $img1;
+        }
+
+        if($r->img2){
+            $fileup2 = new FileUpload;
+            $img2 = $fileup2->upload($r->img2);
+            $fileup2->del_file($row->img2);
+            $row->img2 = $img2;
+        }
+
+        if($r->img3){
+            $fileup3 = new FileUpload;
+            $img3 = $fileup3->upload($r->img3);
+            $fileup3->del_file($row->img3);
+            $row->img3 = $img3;
+        }
+
+        if($r->img4){
+            $fileup4 = new FileUpload;
+            $img4 = $fileup4->upload($r->img4);
+            $fileup4->del_file($row->img4);
+            $row->img4 = $img4;
+        }
+
+        // remove images
+        if($r->rimg1){
+            $fileup->del_file($row->img1);
+            $row->img1 = null;
+
+        }
+
+         if($r->rimg2){
+            $fileup->del_file($row->img2);
+            $row->img2 = null;
+
+        }
+
+         if($r->rimg3){
+            $fileup->del_file($row->img3);
+            $row->img3 = null;
+
+        }
+
+        if($r->rimg4){
+            $fileup->del_file($row->img4);
+            $row->img4 = null;
+
+        }
+
         if($row->save()){
-            
+
             return back()->with('success','Page updated');
         }
-        
-        
-        
+
+
+
     }
-    
-   
-    
+
+
+
     public function destroy($id){
-        
+
         $row = Page::findOrFail($id);
-        
+
         $row->delete();
-        
+
         return back()->with('success','Page removed');
     }
 
-  
+
 }
